@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Form</title>
+</head>
+<body>
+    <h1>Place an Order</h1>
+    <form id="orderForm">
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" name="productName" required><br>
+
+        <label for="asin">ASIN:</label>
+        <input type="text" id="asin" name="asin" required><br>
+
+        <label for="productImage">Product Image:</label>
+        <input type="file" id="productImage" name="productImage" accept="image/*" required><br>
+
+        <label for="productUnits">Product Units:</label>
+        <input type="number" id="productUnits" name="productUnits" required><br>
+
+        <label for="otherRequirements">Other Requirements:</label>
+        <textarea id="otherRequirements" name="otherRequirements" rows="4"></textarea><br>
+
+        <button type="button" onclick="submitOrder()">Submit Order</button>
+    </form>
+
+    <script>
+        function submitOrder() {
+            const productName = document.getElementById('productName').value;
+            const asin = document.getElementById('asin').value;
+            const productUnits = document.getElementById('productUnits').value;
+            const otherRequirements = document.getElementById('otherRequirements').value;
+
+            // Get the uploaded image file
+            const productImage = document.getElementById('productImage').files[0];
+            
+            const orderDetails = {
+                'Product Name': productName,
+                'ASIN': asin,
+                'Product Units': productUnits,
+                'Other Requirements': otherRequirements
+            };
+
+            // Send order details to Google Sheets
+            sendToGoogleSheet(orderDetails, productImage);
+
+            // Clear form inputs
+            document.getElementById('productName').value = '';
+            document.getElementById('asin').value = '';
+            document.getElementById('productUnits').value = '';
+            document.getElementById('otherRequirements').value = '';
+            document.getElementById('productImage').value = '';
+        }
+
+        // Function to send order details to Google Sheets using Sheets API
+        function sendToGoogleSheet(orderDetails, productImage) {
+            // Use Google Sheets API to send data to the spreadsheet
+            const spreadsheetId = 'https://docs.google.com/spreadsheets/d/11m-eXcMrasLdKQTrrfh0D1UsoaOk7L_4_k__m8opl78/edit'; // Replace with your actual spreadsheet ID
+            const apiKey = 'AIzaSyAEevmyj1oL4lx-3_jPRoHb4fcApnLxB28'; // Replace with your actual API key
+            const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1:append?valueInputOption=RAW&key=${apiKey}`;
+
+            // Create the data to be sent
+            const values = Object.values(orderDetails);
+            const formData = new FormData();
+            formData.append('values', JSON.stringify(values));
+            formData.append('productImage', productImage);
+
+            // Send the data using a POST request
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {},
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Order submitted successfully!');
+            })
+            .catch(error => {
+                console.error('Error submitting order:', error);
+            });
+        }
+    </script>
+</body>
+</html>
